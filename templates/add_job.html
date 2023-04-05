@@ -21,8 +21,8 @@
 	<form method="POST">
 		{{ form.hidden_tag() }}
 
-		{{ form.job_position.label(class="form-label") }}
-		{{ form.job_position(class="form-control") }}
+		{{ form.position.label(class="form-label") }}
+		{{ form.position(class="form-control") }}
 		<br/>
 
 		{{ form.company.label(class="form-label") }}
@@ -33,7 +33,19 @@
 		{{ form.location(class="form-control") }}
 		<br/>
 
+		{{ form.min_salary.label(class="form-label") }}
+		{{ form.min_salary(class="form-control") }}
+		<br/>
 
+		{{ form.max_salary.label(class="form-label") }}
+		{{ form.max_salary(class="form-control") }}
+		<br/>
+
+		{{ form.status.label(class="form-label") }}
+		{{ form.status(class="form-select") }}
+		
+		<br/>
+		
 		{{ form.submit(class="btn btn-secondary") }}
 	</form>
 </div>

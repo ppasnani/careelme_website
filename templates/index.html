@@ -3,6 +3,19 @@
 
 	<h1>Hello Yo!</h1>
 	<p>This is my first webpage!!!</p>
+	<br/>
 
+	<table class="table table-hover table-bordered table-striped">
+		{% for job in our_jobs %}
+			<tr>
+				<td>{{ job.position }}</td>
+				<td>{{ job.company }}</td>
+				<td>{{ job.location }}</td>
+				<td>{{ job.min_salary }}</td>
+				<td>{{ job.max_salary }}</td>
+				<td>{{ job.status }}</td>
+			</tr>
+		{% endfor %}
+	</table>
 
 {% endblock %}
