@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+	<div class="alert alert-warning alert-dismissible fade show" role="alert">
+	  <strong>	{{ message }}</strong>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+
+{% endfor %}
+
+<div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+{% if job %}
+	<h1> Job Added!</h1>
+	<br/>
+	<br/><br/>
+
+{% else %}
+	<h1> Add Job details below:</h1>
+	<br/>
+	<form method="POST">
+		{{ form.hidden_tag() }}
+
+		{{ form.job_position.label(class="form-label") }}
+		{{ form.job_position(class="form-control") }}
+		<br/>
+
+		{{ form.company.label(class="form-label") }}
+		{{ form.company(class="form-control") }}
+		<br/>
+
+		{{ form.location.label(class="form-label") }}
+		{{ form.location(class="form-control") }}
+		<br/>
+
+
+		{{ form.submit(class="btn btn-secondary") }}
+	</form>
+</div>
+
+{% endif %}
+
+{% endblock %}
