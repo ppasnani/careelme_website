@@ -1,14 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 
-{% for message in get_flashed_messages() %}
-	<div class="alert alert-warning alert-dismissible fade show" role="alert">
-	  <strong>	{{ message }}</strong>
-	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	</div>
-
-{% endfor %}
-
 <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
 {% if job %}
 	<h1> Job Added!</h1>
@@ -40,6 +32,9 @@
 		{{ form.max_salary.label(class="form-label") }}
 		{{ form.max_salary(class="form-control") }}
 		<br/>
+
+		{{ form.email.label(class="form-label") }}
+		{{ form.email(class="form-control") }}
 
 		{{ form.status.label(class="form-label") }}
 		{{ form.status(class="form-select") }}

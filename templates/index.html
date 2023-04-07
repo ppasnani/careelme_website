@@ -1,19 +1,37 @@
 {% extends 'base.html' %}
 {% block content %}
 
+	{% for message in get_flashed_messages() %}
+		<div class="alert alert-warning alert-dismissible fade show" role="alert">
+		<strong>	{{ message }}</strong>
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+
+	{% endfor %}
+
 	<h1>Hello Yo!</h1>
 	<p>This is my first webpage!!!</p>
 	<br/>
 
 	<table class="table table-hover table-bordered table-striped">
+		<thead>
+			<tr>
+			  <th scope="col">Position</th>
+			  <th scope="col">Company</th>
+			  <th scope="col">Location</th>
+			  <th scope="col">Salary Range</th>
+			  <th scope="col">Status</th>
+			  <th scope="col">Email</th>
+			</tr>
+		  </thead>
 		{% for job in our_jobs %}
 			<tr>
 				<td>{{ job.position }}</td>
 				<td>{{ job.company }}</td>
 				<td>{{ job.location }}</td>
-				<td>{{ job.min_salary }}</td>
-				<td>{{ job.max_salary }}</td>
+				<td>{{ job.min_salary }} - {{ job.max_salary }}</td>
 				<td>{{ job.status }}</td>
+				<td>{{ job.email }}</td>
 			</tr>
 		{% endfor %}
 	</table>

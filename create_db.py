@@ -10,10 +10,10 @@ mydb = mysql.connector.connect(
 my_cursor = mydb.cursor()
 
 # Commented below out that actually creates the database to avoid overwriting the existing db
-#my_cursor.execute("CREATE DATABASE careelme_jobs")
+# my_cursor.execute("CREATE DATABASE careelme_jobs")
 
-# Delete the database using below
-# Execute the DROP DATABASE command to delete the database
+# # Delete the database using below
+# # Execute the DROP DATABASE command to delete the database
 # my_cursor.execute("DROP DATABASE careelme_jobs")
 
 # # Commit the transaction
