@@ -26,7 +26,7 @@
 		  </thead>
 		{% for job in our_jobs %}
 			<tr>
-				<td>{{ job.position }}</td>
+				<td><a href="{{url_for('update', id=job.id)}}">{{ job.position }}</a></td>
 				<td>{{ job.company }}</td>
 				<td>{{ job.location }}</td>
 				<td>{{ job.min_salary }} - {{ job.max_salary }}</td>

@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask import render_template, flash
+from flask import render_template, flash, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField
 from wtforms.validators import DataRequired
@@ -38,8 +38,29 @@ class JobForm(FlaskForm):
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
 
+# Create a route to update job
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update(id):
+	job_to_update = Jobs.query.get_or_404(id)
+	# Critical to load form after getting the job
+	# This allows me to set the value of the select field as the form loads
+	form=JobForm(status=job_to_update.status)
+	if request.method == 'POST':
+		job_to_update.position = request.form['position']
+		job_to_update.company = request.form['company']
+		job_to_update.status = request.form['status']
+		job_to_update.email = request.form['email']
+		
+		try:
+			db.session.commit()
+			flash(f'Job Updated Successfully {job_to_update.position}')
+		except:
+			flash(f'Job Update Failed {job_to_update.position}')
+		return redirect('/')
+	else:
+		return render_template('update.html', form=form, job_to_update=job_to_update)
+
 # Create a route to add job
-# Update the database
 @app.route('/job/add', methods=['GET', 'POST'])
 def add_job():
 	position = None

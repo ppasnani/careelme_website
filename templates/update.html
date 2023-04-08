@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+{% if job %}
+	<h1> Update this one job!</h1>
+	<br/>
+	{% for job in our_jobs %}
+			{{ job.id}}. {{ job.position }}, {{ job.company }}, {{ job.location }}, {{ job.min_salary }} - {{ job.max_salary }}, {{ job.status }}, {{ job.email }}<br/>
+	{% endfor %}
+	<br/><br/>
+
+{% else %}
+	<h1> Update Job details below:</h1>
+	<br/>data
+	<br/>
+	<form action="/update/{{ job_to_update.id }}"method="POST">
+		{{ form.hidden_tag() }}
+
+		{{ form.position.label(class="form-label") }}
+		{{ form.position(class="form-control", value=job_to_update.position) }}
+		<br/>
+
+		{{ form.company.label(class="form-label") }}
+		{{ form.company(class="form-control", value=job_to_update.company) }}
+		<br/>
+
+		{{ form.status.label(class="form-label") }}
+		{{ form.status(class="form-control hacky", value=job_to_update.status) }}
+
+		<br/>
+
+		{{ form.email.label(class="form-label") }}
+		{{ form.email(class="form-control", value=job_to_update.email) }}
+
+		<br/>
+		
+		{{ form.submit(class="btn btn-secondary") }}
+	</form>
+</div>
+
+{% endif %}
+
+{% endblock %}
