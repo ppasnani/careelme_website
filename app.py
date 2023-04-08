@@ -38,6 +38,18 @@ class JobForm(FlaskForm):
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
 
+# Create a route to delete job
+@app.route('/delete/<int:id>')
+def delete(id):
+	job_to_delete = Jobs.query.get_or_404(id)
+	try:
+		db.session.delete(job_to_delete)
+		db.session.commit()
+		flash(f'Job Deleted Successfully {job_to_delete.position}')
+	except:
+		flash(f'Whoops! Delete Failed {job_to_delete.position}')
+	return redirect('/')
+
 # Create a route to update job
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
@@ -58,7 +70,7 @@ def update(id):
 			flash(f'Job Update Failed {job_to_update.position}')
 		return redirect('/')
 	else:
-		return render_template('update.html', form=form, job_to_update=job_to_update)
+		return render_template('update.html', form=form, job_to_update=job_to_update, id=id)
 
 # Create a route to add job
 @app.route('/job/add', methods=['GET', 'POST'])

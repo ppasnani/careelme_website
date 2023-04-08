@@ -32,6 +32,7 @@
 				<td>{{ job.min_salary }} - {{ job.max_salary }}</td>
 				<td>{{ job.status }}</td>
 				<td>{{ job.email }}</td>
+				<td><a href="{{ url_for('delete', id=job.id)}}">Delete</a></td>
 			</tr>
 		{% endfor %}
 	</table>
