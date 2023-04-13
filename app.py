@@ -1,6 +1,11 @@
+from os import environ as env
+from urllib.parse import quote_plus, urlencode
+
 from flask import Flask, request
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, url_for, session
 from flask_wtf import FlaskForm
+from dotenv import find_dotenv, load_dotenv
+
 from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField, PasswordField
 from wtforms.validators import DataRequired
 from datetime import datetime
@@ -9,11 +14,28 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from authlib.integrations.flask_client import OAuth
+
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+	load_dotenv(ENV_FILE)
+
 app = Flask(__name__)
 app.app_context().push()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password123@localhost/careelme_jobs'
-app.config['SECRET_KEY'] = "my super secret secret key"
+app.secret_key = env.get("APP_SECRET_KEY")
+
+oauth = OAuth(app)
+oauth.register(
+    "auth0",
+    client_id=env.get("AUTH0_CLIENT_ID"),
+    client_secret=env.get("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
 
 # Initializing the databse
 db = SQLAlchemy(app)
@@ -45,13 +67,6 @@ class LoginForm(FlaskForm):
 	password_hash = PasswordField("Password", validators=[DataRequired()])
 	submit = SubmitField("Submit")
 
-# Create a register form
-class RegisterForm(FlaskForm):
-	email = StringField("Email", validators=[DataRequired()])
-	username = StringField("Username", validators=[DataRequired()])
-	password_hash = PasswordField("Password", validators=[DataRequired()])
-	submit = SubmitField("Submit")
-
 # Job class
 class Jobs(db.Model):
 		id = db.Column(db.Integer, primary_key=True)
@@ -77,51 +92,38 @@ class JobForm(FlaskForm):
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
 
-# Create a page to register
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-	email = None
-	username = None
-	password = None
-	form = RegisterForm()
-	if form.validate_on_submit():
-		email = form.email.data
-		username = form.username.data
-		password = form.password_hash.data
-		# Clear the form
-		form.email.data = ''
-		form.username.data = ''
-		form.password_hash.data = ''
-		# Add user to database
-		new_user = Users(email=email, username=username, password=password)
-		db.session.add(new_user)
-		db.session.commit()
-		flash(f'User Created Successfully {username}')
-		return redirect('/')
-	return render_template('register_user.html', email=email, username=username, password=password, form=form)
+@app.route('/google_authorized')
+def google_authorized():
+	user_info = session.get('user')
+	return f"YO YO YO ! Hello user, {user_info}!"
 
-# Create a page to login
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	username = None
-	password = None
-	pw_to_check = None
-	passed = None
-	form = LoginForm()
-	if form.validate_on_submit():
-		username = form.username.data
-		password = form.password_hash.data
-		# Clear the form
-		form.username.data = ''
-		form.password_hash.data = ''
-		# Check if user exists
-		pw_to_check = Users.query.filter_by(username=username).first()
-		# Check hashed password
-		if pw_to_check is not None:
-			passed = pw_to_check.verify_password(password)
-		#return redirect('/')
-	return render_template('login_user.html', username=username, password=password, passed=passed, pw_to_check=pw_to_check, form=form)
+	return oauth.auth0.authorize_redirect(
+		redirect_uri=url_for("callback", _external=True)
+		)
 
+@app.route('/callback', methods=['GET', 'POST'])
+def callback():
+	token = oauth.auth0.authorize_access_token()
+	session["user"] = token
+	return redirect('/google_authorized')
+
+@app.route('/logout')
+def logout():
+	session.clear()
+	return redirect(
+        "https://" + env.get("AUTH0_DOMAIN")
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("index", _external=True),
+                "client_id": env.get("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
+    )
 # Create a route to delete job
 @app.route('/delete/<int:id>')
 def delete(id):
