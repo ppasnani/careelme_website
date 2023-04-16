@@ -94,8 +94,17 @@ class JobForm(FlaskForm):
 
 @app.route('/google_authorized')
 def google_authorized():
-	user_info = session.get('user')
-	return f"YO YO YO ! Hello user, {user_info}!"
+	user_dict = dict(dict(session).get('user', None)['userinfo'])
+	# Check if user exists
+	user = Users.query.filter_by(username=user_dict['email']).first()
+	if user is None:
+		user = Users(username=user_dict['nickname'], email=user_dict['email'], password_hash=user_dict['sid'])
+		# Add user to database
+		db.session.add(user)
+		db.session.commit()
+	return redirect('/')
+	
+	#return f"YO YO YO ! Hello user, {user_dict}!"
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -124,6 +133,19 @@ def logout():
             quote_via=quote_plus,
         )
     )
+
+# Create a route to delete a user
+@app.route('/delete_user/<int:id>')
+def delete_user(id):
+	user_to_delete = Users.query.get_or_404(id)
+	try:
+		db.session.delete(user_to_delete)
+		db.session.commit()
+		flash(f'User Deleted Successfully {user_to_delete.username}')
+	except:
+		flash(f'Whoops! Delete Failed {user_to_delete.username}')
+	return redirect('/')
+
 # Create a route to delete job
 @app.route('/delete/<int:id>')
 def delete(id):
