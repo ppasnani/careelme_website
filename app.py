@@ -6,6 +6,8 @@ from flask import render_template, flash, redirect, url_for, session
 from flask_wtf import FlaskForm
 from dotenv import find_dotenv, load_dotenv
 from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from flask_mail import Mail, Message
+import mailtrap as mt
 
 from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField, PasswordField
 from wtforms.validators import DataRequired
@@ -26,6 +28,16 @@ app.app_context().push()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password123@localhost/careelme_jobs'
 app.secret_key = env.get("APP_SECRET_KEY")
+
+#app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = env.get("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = env.get("MAIL_PASSWORD")
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+
+mail = Mail(app)
 
 # Setting up 0Auth stuff
 oauth = OAuth(app)
@@ -219,18 +231,36 @@ def add_job():
 		form.status.data = ''
 		flash(f'Job Added Successfully {position}')
 		our_jobs = Jobs.query.order_by(Jobs.id)
-		#return render_template('index.html', our_jobs=our_jobs)
 		return redirect('/dashboard')
-	#our_users = Users.query.order_by(Users.date_added)
+	
 	return render_template("add_job.html", form=form, job=position)
 
 # Createa a dashboard page
 @app.route('/dashboard')
 @login_required
 def dashboard():
-	#our_jobs = Jobs.query.order_by(Jobs.id)
 	# Only query the jobs associated with the current user
 	our_jobs = Jobs.query.filter_by(poster_id=current_user.id).order_by(Jobs.id)
+	
+	# Testing sending email on behalf of current user
+	msg = Message('Hello', sender=current_user.email, recipients=['ppasnani@gmail.com'])
+	msg.body = "Hello Flask message sent from Flask-Mail"
+	mail.send(msg)
+	flash(f'Hello {current_user.email} Sent an email on you behalf!')
+	# Old code using just flask mail
+
+	# # Below is method to send email using mailtrap. Will have to set up custom domain to use this
+	# mail = mt.Mail(
+    # 	sender=mt.Address(email=current_user.email, name="Mailtrap Test"),
+	# 	to=[mt.Address(email="ppasnani@gmail.com")],
+	# 	subject="Mailtrap test",
+	# 	text="Whoooo!",
+	# )
+	# # Create client and send
+	# client = mt.MailtrapClient(token=env.get("MAILTRAP_TOKEN"))
+	# client.send(mail)
+	
+
 	return render_template('dashboard.html', our_jobs=our_jobs)
 
 @app.route('/')
