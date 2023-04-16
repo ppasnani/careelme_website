@@ -92,12 +92,6 @@ class JobForm(FlaskForm):
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
 
-# Dashboard route for testing login
-@app.route('/dashboard')
-@login_required
-def dashboard():
-	return f'Hello! yo!'
-
 # Flask login stuff
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -131,7 +125,7 @@ def authorized():
 		db.session.add(user)
 		db.session.commit()
 	login_user(user)
-	return redirect('/')
+	return redirect('/dashboard')
 
 @app.route('/logout')
 @login_required
@@ -164,6 +158,7 @@ def delete_user(id):
 
 # Create a route to delete job
 @app.route('/delete/<int:id>')
+@login_required
 def delete(id):
 	job_to_delete = Jobs.query.get_or_404(id)
 	try:
@@ -172,10 +167,11 @@ def delete(id):
 		flash(f'Job Deleted Successfully {job_to_delete.position}')
 	except:
 		flash(f'Whoops! Delete Failed {job_to_delete.position}')
-	return redirect('/')
+	return redirect('/dashboard')
 
 # Create a route to update job
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
 def update(id):
 	job_to_update = Jobs.query.get_or_404(id)
 	# Critical to load form after getting the job
@@ -192,7 +188,7 @@ def update(id):
 			flash(f'Job Updated Successfully {job_to_update.position}')
 		except:
 			flash(f'Job Update Failed {job_to_update.position}')
-		return redirect('/')
+		return redirect('/dashboard')
 	else:
 		return render_template('update.html', form=form, job_to_update=job_to_update, id=id)
 
@@ -224,9 +220,18 @@ def add_job():
 		flash(f'Job Added Successfully {position}')
 		our_jobs = Jobs.query.order_by(Jobs.id)
 		#return render_template('index.html', our_jobs=our_jobs)
-		return redirect('/')
+		return redirect('/dashboard')
 	#our_users = Users.query.order_by(Users.date_added)
 	return render_template("add_job.html", form=form, job=position)
+
+# Createa a dashboard page
+@app.route('/dashboard')
+@login_required
+def dashboard():
+	#our_jobs = Jobs.query.order_by(Jobs.id)
+	# Only query the jobs associated with the current user
+	our_jobs = Jobs.query.filter_by(poster_id=current_user.id).order_by(Jobs.id)
+	return render_template('dashboard.html', our_jobs=our_jobs)
 
 @app.route('/')
 def index():

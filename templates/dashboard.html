@@ -10,7 +10,7 @@
 	{% endfor %}
 
 	<div class="container-fluid">
-		You are NOT LOGGED IN!
+		You are logged in as {{ current_user.username }}
 	</div>
 
 	<h1>Job Tracker</h1>
@@ -41,18 +41,5 @@
 		{% endfor %}
 	</table>
 
-	<h1>Temporary place to put users!</h1>
-	<br/>
-	<table class="table table-hover table-bordered table-striped">
-		{% for our_user in our_users %}
-			<tr>
-				<td>
-					<td> {{ our_user.id }}</td>
-					<td>{{ our_user.username }}</td>
-					<td>{{ our_user.email }} </td> 
-					<td> {{our_user.password_hash }} </td>
-			</tr>
-		{% endfor %}
-	</table>
 
 {% endblock %}
