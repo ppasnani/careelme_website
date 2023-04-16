@@ -5,6 +5,7 @@ from flask import Flask, request
 from flask import render_template, flash, redirect, url_for, session
 from flask_wtf import FlaskForm
 from dotenv import find_dotenv, load_dotenv
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 
 from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField, PasswordField
 from wtforms.validators import DataRequired
@@ -26,6 +27,7 @@ app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password123@localhost/careelme_jobs'
 app.secret_key = env.get("APP_SECRET_KEY")
 
+# Setting up 0Auth stuff
 oauth = OAuth(app)
 oauth.register(
     "auth0",
@@ -42,12 +44,14 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # User class
-class Users(db.Model):
+class Users(db.Model, UserMixin):
 		id = db.Column(db.Integer, primary_key=True)
 		email = db.Column(db.String(200), nullable=False, unique=True)
 		username = db.Column(db.String(200), nullable=False, unique=True)
 		date_created = db.Column(db.DateTime, default=datetime.utcnow)
 		password_hash = db.Column(db.String(128), nullable=False)
+		# A user can have many jobs
+		jobs = db.relationship('Jobs', backref='poster')
 
 		@property
 		def password(self):
@@ -60,13 +64,6 @@ class Users(db.Model):
 		def verify_password(self, password):
 			return check_password_hash(self.password_hash, password)
 
-# Create a login form
-class LoginForm(FlaskForm):
-	#email = StringField("Email", validators=[DataRequired()])
-	username = StringField("Username", validators=[DataRequired()])
-	password_hash = PasswordField("Password", validators=[DataRequired()])
-	submit = SubmitField("Submit")
-
 # Job class
 class Jobs(db.Model):
 		id = db.Column(db.Integer, primary_key=True)
@@ -78,6 +75,9 @@ class Jobs(db.Model):
 		max_salary = db.Column(db.Integer)
 		email = db.Column(db.String(200), nullable=False)
 		status = db.Column(db.String(200), default="Flagged", nullable=False)
+		# Foreign key to link Users (refers to the primary key of the Users)
+		# A job only has one user
+		poster_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
 # Create a Form class
 class JobForm(FlaskForm):
@@ -92,20 +92,20 @@ class JobForm(FlaskForm):
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
 
-@app.route('/google_authorized')
-def google_authorized():
-	user_dict = dict(dict(session).get('user', None)['userinfo'])
-	# Check if user exists
-	user = Users.query.filter_by(username=user_dict['email']).first()
-	if user is None:
-		user = Users(username=user_dict['nickname'], email=user_dict['email'], password_hash=user_dict['sid'])
-		# Add user to database
-		db.session.add(user)
-		db.session.commit()
-	return redirect('/')
-	
-	#return f"YO YO YO ! Hello user, {user_dict}!"
+# Dashboard route for testing login
+@app.route('/dashboard')
+@login_required
+def dashboard():
+	return f'Hello! yo!'
 
+# Flask login stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+	return Users.query.get(int(user_id))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -117,11 +117,27 @@ def login():
 def callback():
 	token = oauth.auth0.authorize_access_token()
 	session["user"] = token
-	return redirect('/google_authorized')
+	return redirect('/authorized')
+
+@app.route('/authorized')
+def authorized():
+	user_dict = dict(dict(session).get('user', None)['userinfo'])
+	# Check if user exists
+	user = Users.query.filter_by(email=user_dict['email']).first()
+	if user is None:
+		# Create a new user
+		user = Users(username=user_dict['nickname'], email=user_dict['email'], password_hash=user_dict['sid'])
+		# Add user to database
+		db.session.add(user)
+		db.session.commit()
+	login_user(user)
+	return redirect('/')
 
 @app.route('/logout')
+@login_required
 def logout():
 	session.clear()
+	logout_user()
 	return redirect(
         "https://" + env.get("AUTH0_DOMAIN")
         + "/v2/logout?"
@@ -182,13 +198,18 @@ def update(id):
 
 # Create a route to add job
 @app.route('/job/add', methods=['GET', 'POST'])
+@login_required
 def add_job():
 	position = None
 	form = JobForm()
 	if form.validate_on_submit():
+		# Poster doesnt work right now since we don't have a login session. Coming back to this
+		poster = current_user.id
 		job = Jobs.query.filter_by(position=form.position.data).first()
 		if job is None:
-			job = Jobs(position=form.position.data, company=form.company.data, location=form.location.data, min_salary=form.min_salary.data, max_salary=form.max_salary.data, email=form.email.data, status=form.status.data)
+			job = Jobs(position=form.position.data, company=form.company.data, 
+	      	location=form.location.data, min_salary=form.min_salary.data, max_salary=form.max_salary.data, 
+			email=form.email.data, status=form.status.data, poster_id=poster)
 			db.session.add(job)
 			db.session.commit()
 		# Save the position for display
@@ -202,7 +223,8 @@ def add_job():
 		form.status.data = ''
 		flash(f'Job Added Successfully {position}')
 		our_jobs = Jobs.query.order_by(Jobs.id)
-		return render_template('index.html', our_jobs=our_jobs)
+		#return render_template('index.html', our_jobs=our_jobs)
+		return redirect('/')
 	#our_users = Users.query.order_by(Users.date_added)
 	return render_template("add_job.html", form=form, job=position)
 
