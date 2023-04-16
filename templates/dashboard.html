@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'logged_in_base.html' %}
 {% block content %}
 
 	{% for message in get_flashed_messages() %}
@@ -24,7 +24,6 @@
 			  <th scope="col">Salary Range</th>
 			  <th scope="col">Status</th>
 			  <th scope="col">Email</th>
-			  <th scope="col">User</th>
 			</tr>
 		  </thead>
 		{% for job in our_jobs %}
@@ -35,7 +34,6 @@
 				<td>{{ job.min_salary }} - {{ job.max_salary }}</td>
 				<td>{{ job.status }}</td>
 				<td>{{ job.email }}</td>
-				<td>{{ job.poster_id }}</td>
 				<td><a href="{{ url_for('delete', id=job.id)}}">Delete</a></td>
 			</tr>
 		{% endfor %}
