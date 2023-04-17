@@ -1,23 +1,12 @@
 {% extends 'logged_in_base.html' %}
 {% block content %}
 
-	{% for message in get_flashed_messages() %}
-		<div class="alert alert-warning alert-dismissible fade show" role="alert">
-		<strong>	{{ message }}</strong>
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-		</div>
-
-	{% endfor %}
-
-	<div class="container-fluid">
-		You are logged in as {{ current_user.username }}
-	</div>
-
 	<h1>Job Tracker</h1>
 	<br/>
 	<table class="table table-hover table-bordered table-striped">
 		<thead>
 			<tr>
+			  <th scope="col">Delete</th>
 			  <th scope="col">Position</th>
 			  <th scope="col">Company</th>
 			  <th scope="col">Location</th>
@@ -28,13 +17,16 @@
 		  </thead>
 		{% for job in our_jobs %}
 			<tr>
+				<td><a href="{{ url_for('delete', id=job.id)}}"><button type="button" class="btn btn-outline-danger btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+					<path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+				  </svg></button></a></td>
 				<td><a href="{{url_for('update', id=job.id)}}">{{ job.position }}</a></td>
 				<td>{{ job.company }}</td>
 				<td>{{ job.location }}</td>
 				<td>{{ job.min_salary }} - {{ job.max_salary }}</td>
 				<td>{{ job.status }}</td>
 				<td>{{ job.email }}</td>
-				<td><a href="{{ url_for('delete', id=job.id)}}">Delete</a></td>
+				<td><a href="{{ url_for('send_email', id=job.id)}}"><button type="button" class="btn btn-primary btn-sm">Contact</button></a></td>
 			</tr>
 		{% endfor %}
 	</table>

@@ -1,14 +1,6 @@
 {% extends 'logged_out_base.html' %}
 {% block content %}
 
-	{% for message in get_flashed_messages() %}
-		<div class="alert alert-warning alert-dismissible fade show" role="alert">
-		<strong>	{{ message }}</strong>
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-		</div>
-
-	{% endfor %}
-
 	<div class="container-fluid">
 		You are NOT LOGGED IN!
 	</div>

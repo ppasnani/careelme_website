@@ -1,0 +1,23 @@
+{% extends 'logged_in_base.html' %}
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+
+	<h1> Emailing {{ job_to_email.company }}. Enter details below:</h1>
+	<br/>
+	<form method="POST">
+		{{ form.hidden_tag() }}
+
+		{{ form.subject.label(class="form-label") }}
+		{{ form.subject(class="form-control") }}
+
+		{{ form.body.label(class="form-label") }}
+		{{ form.body(class="form-control") }}	
+		<br/>
+		
+		{{ form.submit(class="btn btn-secondary") }}
+	</form>
+</div>
+
+
+{% endblock %}

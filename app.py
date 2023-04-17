@@ -9,8 +9,9 @@ from flask_login import UserMixin, LoginManager, login_user, login_required, log
 from flask_mail import Mail, Message
 import mailtrap as mt
 
-from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField, PasswordField
+from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField
 from wtforms.validators import DataRequired
+from wtforms.widgets import TextArea
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
@@ -36,6 +37,8 @@ app.config['MAIL_USERNAME'] = env.get("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = env.get("MAIL_PASSWORD")
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
+# Configure flask app to be testing
+#app.config['TESTING'] = True
 
 mail = Mail(app)
 
@@ -103,6 +106,12 @@ class JobForm(FlaskForm):
 	status = SelectField('Status', choices=[('Flagged', 'Flagged'), ('Applied', 'Applied'), ('Interview', 'Interview'), ('Offer', 'Offer'), ('Rejected', 'Rejected')])
 	email = EmailField("Email Address", validators=[DataRequired()])
 	submit = SubmitField("Submit")	
+
+# Create a form for the email to be sent
+class EmailForm(FlaskForm):
+	subject = StringField("Subject", validators=[DataRequired()])
+	body = StringField("Body", validators=[DataRequired()], widget=TextArea())
+	submit = SubmitField("Submit")
 
 # Flask login stuff
 login_manager = LoginManager()
@@ -235,32 +244,30 @@ def add_job():
 	
 	return render_template("add_job.html", form=form, job=position)
 
+# Create a route to send an email to the job contact
+@app.route('/send_email/<int:id>', methods=['GET', 'POST'])
+@login_required
+def send_email(id):
+	job_to_email = Jobs.query.get_or_404(id)
+	form = EmailForm()
+	if form.validate_on_submit():
+		# Send email
+		msg = Message(form.subject.data, 
+			sender=current_user.email, 
+			recipients=[job_to_email.email], 
+			extra_headers={'Disposition-Notification-To': current_user.email})
+		msg.body = form.body.data
+		mail.send(msg)
+		flash(f'Email Sent Successfully to {job_to_email.email}')
+		return redirect('/dashboard')
+	return render_template('send_email.html', form=form, job_to_email=job_to_email)
+
 # Createa a dashboard page
 @app.route('/dashboard')
 @login_required
 def dashboard():
 	# Only query the jobs associated with the current user
 	our_jobs = Jobs.query.filter_by(poster_id=current_user.id).order_by(Jobs.id)
-	
-	# Testing sending email on behalf of current user
-	msg = Message('Hello', sender=current_user.email, recipients=['ppasnani@gmail.com'])
-	msg.body = "Hello Flask message sent from Flask-Mail"
-	mail.send(msg)
-	flash(f'Hello {current_user.email} Sent an email on you behalf!')
-	# Old code using just flask mail
-
-	# # Below is method to send email using mailtrap. Will have to set up custom domain to use this
-	# mail = mt.Mail(
-    # 	sender=mt.Address(email=current_user.email, name="Mailtrap Test"),
-	# 	to=[mt.Address(email="ppasnani@gmail.com")],
-	# 	subject="Mailtrap test",
-	# 	text="Whoooo!",
-	# )
-	# # Create client and send
-	# client = mt.MailtrapClient(token=env.get("MAILTRAP_TOKEN"))
-	# client.send(mail)
-	
-
 	return render_template('dashboard.html', our_jobs=our_jobs)
 
 @app.route('/')
