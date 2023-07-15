@@ -68,21 +68,6 @@ oauth.register(
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Testing mailtrap
-@app.route('/mailtrap')
-def mailtrap_test():
-	url = "https://send.api.mailtrap.io/api/send"
-
-	payload = "{\"from\":{\"email\":\"mailtrap@careel.me\",\"name\":\"Mailtrap Test\"},\"to\":[{\"email\":\"careelme@gmail.com\"}],\"subject\":\"You are awesome!\",\"text\":\"Congrats for sending test email with Mailtrap!\",\"category\":\"Integration Test\"}"
-	headers = {
-	"Authorization": "Bearer ********2a06",
-	"Content-Type": "application/json"
-	}
-
-	response = requests.request("POST", url, headers=headers, data=payload)
-	print (response.text)
-	return "Mailtrap test", response.text
-
 # User class
 class Users(db.Model, UserMixin):
 		id = db.Column(db.Integer, primary_key=True)
