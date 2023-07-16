@@ -17,13 +17,15 @@ from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
+#from werkzeug.security import generate_password_hash, check_password_hash
 
 from authlib.integrations.flask_client import OAuth
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
 	load_dotenv(ENV_FILE)
+else:
+	print("Couldn't find .env file")
 
 app = Flask(__name__)
 app.app_context().push()
@@ -78,16 +80,16 @@ class Users(db.Model, UserMixin):
 		# A user can have many jobs
 		jobs = db.relationship('Jobs', backref='poster')
 
-		@property
-		def password(self):
-			raise AttributeError('password is not a readable attribute')
+		#@property
+		#def password(self):
+		#	raise AttributeError('password is not a readable attribute')
 		
-		@password.setter
-		def password(self, password):
-			self.password_hash = generate_password_hash(password)
+		#@password.setter
+		#def password(self, password):
+	#		self.password_hash = generate_password_hash(password)
 
-		def verify_password(self, password):
-			return check_password_hash(self.password_hash, password)
+		#def verify_password(self, password):
+		#	return check_password_hash(self.password_hash, password)
 
 # Job class
 class Jobs(db.Model):
