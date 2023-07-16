@@ -8,7 +8,6 @@ from dotenv import find_dotenv, load_dotenv
 from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 import mailtrap as mt
-import requests
 
 from wtforms import StringField, IntegerField, SubmitField, SelectField, EmailField
 from wtforms.validators import DataRequired
@@ -33,22 +32,13 @@ app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password123@localhost/careelme_jobs'
 app.secret_key = env.get("APP_SECRET_KEY")
 
-#####################
-# Gmail SMTP stuff###
+#app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = env.get("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = env.get("MAIL_PASSWORD")
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-#####################
-# Mailtrap SMTP Stuff #WAITING FOR SECURITY VERIFICATION
-# app.config['MAIL_SERVER']='live.smtp.mailtrap.io'
-# app.config['MAIL_PORT'] = 587
-# app.config['MAIL_USERNAME'] = "api"
-# app.config['MAIL_PASSWORD'] = "659ffe908e46606475d1f3ae53002a06"
-# app.config['MAIL_USE_TLS'] = True
-#####################
 # Configure flask app to be testing
 #app.config['TESTING'] = True
 
